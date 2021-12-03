@@ -1,0 +1,115 @@
+GET http://localhost:3000
+
+### Get all users names
+GET http://localhost:3000/users
+
+### GET User Jimmy
+GET http://localhost:3000/users/Jimmy
+
+### POST create new user
+POST http://localhost:3000/users/
+Content-Type: application/json
+
+{
+    "id" : "3",
+    "username" : "Johan",
+    "email" : "johan@student.his.se"
+}
+
+### DELETE user
+DELETE http://localhost:3000/users/Johan
+
+### GET climatecodes
+GET http://localhost:3000/climatecodes
+
+### GET forecast
+GET http://localhost:3000/forecast
+
+### GET forecast with city
+GET http://localhost:3000/forecast/Arjeplog
+
+### POST comment
+POST http://localhost:3000/comments
+Content-Type: application/json
+
+{
+    "id" : 3,
+    "location" : "Arjeplog",
+    "replyto" : "null",
+    "content" : "Detta är en kul ort",
+    "posted" : "2020-01-02 00:00:05"
+}
+
+### GET comments
+GET http://localhost:3000/comments
+
+### GET forecast with city or date
+GET http://localhost:3000/forecast/2020-01-01
+
+### GET forecast with city and date
+GET http://localhost:3000/forecast/fewfewm/2020-01-01
+
+### GET comments for a location
+GET http://localhost:3000/comments/Grums
+
+### POST add comments for a specific comment
+POST http://localhost:3000/comments/Arjeplog
+Content-Type: application/json
+
+{
+    "id" : 1113,
+    "location" : "Grums",
+    "replyto" : "null",
+    "author" : "1",
+    "content" : "Detta är en uppdaterad kommentar",
+    "posted" : "2020-01-02 13:00:00"
+}
+
+### PUT update user
+PUT http://localhost:3000/users/1
+Content-Type: application/json
+
+{
+    "id" : 1,
+    "username" : "Jimmy",
+    "email" : "jimmy@student.se"
+}
+
+### GET all comments
+GET http://localhost:3000/comments/Arjeplog
+
+### GET specific coment of city
+GET http://localhost:3000/comments/Arjeplog?id=1111
+
+### GET specific comment of id
+GET http://localhost:3000/comments/Arjeplog/comment/1113
+
+### PUT specific comment of id
+PUT http://localhost:3000/comments/Grums/comment/1112
+Content-Type: application/json
+
+{
+    "id" : 1114,
+    "location" : "Arjeplog",
+    "replyto" : 1111,
+    "author" : "1",
+    "content" : "Detta är en uppdaterad kommentar",
+    "posted" : "2020-01-02 13:00:00"
+}
+
+### GET specific comment of user id
+GET http://localhost:3000/comments/Arjeplog/comment/1112
+
+### POST Answer on specific comment
+POST http://localhost:3000/comments/Arjeplog/comment/1111
+Content-Type:  application/json
+
+{
+    "id" : 1115,
+    "location" : "Arjeplog",
+    "replyto" : 1111,
+    "author" : "1",
+    "content" : "Detta är ett svar",
+    "posted" : "2020-01-02 13:00:00"
+}
+

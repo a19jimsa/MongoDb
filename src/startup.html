@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>React Startup Code</title>
+  <link rel="stylesheet" href="weatherApp.css">
+</head>
+
+<body>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+  <script type="text/babel" src="components/weatherComponents.js"></script>
+  <script type="text/babel" src="components/chatComponents.js"></script>
+
+  <header>
+    <h1>Vär't</h1>
+  </header>
+  <div id="container">
+    <div id="forecast">
+      <form action="Startup.html" method="get">
+        <div class="form-group search">
+          <input type="text" class="input" placeholder="search" name="ort">
+          <button type="submit"><img src='magnify.svg'></button>
+        </div>
+      </form>
+      <div id="content">
+      </div>
+    </div>
+    <footer></footer>
+    <script type="text/babel">
+      // React since react V4 does not read query parameters so we read query parameter directly
+      const urlParams = new URLSearchParams(window.location.search);
+      const ort = urlParams.get('ort');
+
+      if (ort != null){
+        ReactDOM.render(<Info name={ort} />, document.getElementById("content"));
+      }else{
+        ReactDOM.render(<Info name="Arjeplog" />, document.getElementById("content"));
+      }
+      
+
+    </script>
+</body>
+
+</html>
