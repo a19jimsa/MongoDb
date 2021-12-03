@@ -1,23 +1,34 @@
-var sqlite3 = require('sqlite3').verbose();
 const express = require("express");
 const router =  express.Router();
+const db = require('./mongo-connection.js');
 
-let db = new sqlite3.Database("./weather.db", (err)=>{
-    if(err){
-        console.log(err.message);
-    }else{
-        console.log("connected to db");
-    }
-})
+db.connectToServer(function (err) {
+  if (err) {
+    console.error(err);
+    process.exit();
+  }
+
+  // Do stuff ... for example
+  // start the Express server  
+});
+
+const dbConnect = db.getDb();
 
 router.get("/", (req, res)=>{
-    let sql = "select * from climatecodes";
-    db.all(sql, [], (err, rows)=>{
-        if(err){
-            throw err;
-        }
-        res.send(rows);
+    dbConnect
+    .collection('forecasts')
+    .find({
+      code:{$regex:/^A.*/}
+    })
+    .limit(50)
+    .toArray(function (err, result) {
+      if (err) {
+        console.log("Something went wrong with DB call", err)
+      } else {
+        console.log(result);
+      }
     });
+
 })
 
 module.exports = router;
