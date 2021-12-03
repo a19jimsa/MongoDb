@@ -45196,88 +45196,119 @@ var require_climatecodesRoute = __commonJS((exports2, module2) => {
 
 // src/commentsRoute.js
 var require_commentsRoute = __commonJS((exports2, module2) => {
+  var {parse} = require_main();
   var express2 = require_express2();
   var router = express2.Router();
-  var sqlite3 = require("sqlite3").verbose();
-  var db = new sqlite3.Database("./weather.db", (err) => {
+  var db = require_mongo_connection();
+  db.connectToServer(function(err) {
     if (err) {
-      console.log(err.message);
-    } else {
-      console.log("Connected to db");
+      console.error(err);
+      process.exit();
     }
   });
   router.get("/", (req, res) => {
-    let sql = "select * from comment";
-    db.all(sql, [], (err, rows) => {
+    const dbConnect = db.getDb();
+    dbConnect.collection("comments").find().toArray(function(err, result) {
       if (err) {
-        throw err;
+        console.log("Something went wrong with DB call", err);
+      } else {
+        res.status(200).send(result);
       }
-      res.send(rows);
     });
   });
   router.get("/:location", function(req, res) {
+    const dbConnect = db.getDb();
     if (req.query.id == "null") {
-      let sql = "select * from comment where location=? and replyto IS NULL";
-      db.all(sql, [req.params.location], (err, rows) => {
+      dbConnect.collection("comments").find({["replyto"]: null, ["location"]: req.params.location}).toArray(function(err, result) {
         if (err) {
-          throw err;
+          console.log("Something went wrong with DB call", err);
+        } else {
+          res.status(200).send(result);
         }
-        res.status(200).send(rows);
       });
     } else if (req.query.id) {
       let sql = "select * from comment where location=? and replyto=?";
-      db.all(sql, [req.params.location, req.query.id], (err, rows) => {
+      var id = parseInt(req.query.id);
+      dbConnect.collection("comments").find({["replyto"]: id, ["location"]: req.params.location}).toArray(function(err, result) {
         if (err) {
-          throw err;
+          console.log("Something went wrong with DB call", err);
+        } else {
+          res.status(200).send(result);
         }
-        res.status(200).send(rows);
       });
     } else {
       let sql = "select * from comment where location=? Order by id DESC";
-      db.all(sql, [req.params.location], (err, rows) => {
+      var value = req.params.location;
+      dbConnect.collection("comments").find({["location"]: value}).sort({id: -1}).toArray(function(err, result) {
         if (err) {
-          throw err;
+          console.log("Something went wrong with DB call", err);
+        } else {
+          res.status(200).send(result);
         }
-        res.status(200).send(rows);
       });
     }
   });
   router.get("/:location/comment/:id", function(req, res) {
+    const dbConnect = db.getDb();
     let sql = "select * from comment where location=? and id=?";
-    db.all(sql, [req.params.location, req.params.id], (err, rows) => {
+    var id = parseInt(req.params.id);
+    dbConnect.collection("comments").findOne({["location"]: req.params.location, ["id"]: id}).toArray(function(err, result) {
       if (err) {
-        throw err;
+        console.log("Something went wrong with DB call", err);
+      } else {
+        res.status(200).send(result);
       }
-      res.status(200).send(rows);
     });
   });
   router.put("/:location/comment/:id", express2.json(), function(req, res) {
+    const dbConnect = db.getDb();
     let sql = "update comment set content=? where location=? and id=?";
-    db.all(sql, [req.body.content, req.params.location, req.params.id], (err, rows) => {
-      if (err) {
+    var id = parseInt(req.params.id);
+    var myquery = {["id"]: id};
+    var newvalues = {$set: {["content"]: req.body.content}};
+    dbConnect.collection("comments").updateOne(myquery, newvalues, function(err, result) {
+      if (err)
         throw err;
-      }
-      res.status(200).send(rows);
+      console.log("1 document updated");
+      res.status(200).send({msg: "OK"});
     });
   });
   router.post("/:location", express2.json(), function(req, res) {
     let sql = "insert into comment(id, location, replyto, author, content, posted) values(?,?,?,?,?,?)";
-    db.run(sql, [req.body.id, req.body.location, req.body.replyto, req.body.author, req.body.content, req.body.posted], (err, rows) => {
-      if (err) {
+    const dbConnect = db.getDb();
+    var id = parseInt(req.body.id);
+    var replyto;
+    if (req.body.replyto != null) {
+      replyto = parseInt(req.body.replyto);
+    } else {
+      replyto = req.body.replyto;
+    }
+    var author = parseInt(req.body.author);
+    var myobj = {["id"]: id, ["location"]: req.body.location, ["replyto"]: replyto, ["author"]: author, ["content"]: req.body.content, ["posted"]: req.body.posted};
+    dbConnect.collection("comments").insertOne(myobj, function(err, result) {
+      if (err)
         throw err;
-      }
-      res.status(201).send({msg: "Created comment" + rows});
-      console.log("Skapade kommentar");
+      console.log("1 document inserted");
+      res.status(201).send({msg: "OK"});
     });
   });
   router.post("/:location/comment/:commentid", express2.json(), function(req, res) {
     let sql = "insert into comment(id, location, replyto, author, content, posted) values(?,?,?,?,?,?)";
-    db.run(sql, [req.body.id, req.body.location, req.body.replyto, req.body.author, req.body.content, req.body.posted], (err, rows) => {
-      if (err) {
+    const dbConnect = db.getDb();
+    var id = parseInt(req.body.id);
+    var replyto;
+    if (req.body.replyto != null) {
+      replyto = parseInt(req.body.replyto);
+    } else {
+      replyto = req.body.replyto;
+    }
+    var author = parseInt(req.body.author);
+    var myobj = {["id"]: id, ["location"]: req.body.location, ["replyto"]: replyto, ["author"]: author, ["content"]: req.body.content, ["posted"]: req.body.posted};
+    dbConnect.collection("comments").insertOne(myobj, function(err, result) {
+      if (err)
         throw err;
-      }
-      res.status(201).send({msg: "Created comment" + rows});
-      console.log("Skapade svar");
+      console.log("1 document inserted");
+      res.status(201).send({msg: "OK"});
     });
   });
   router.delete("/:commentid", express2.json(), function(req, res) {

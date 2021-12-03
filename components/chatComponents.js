@@ -36,6 +36,31 @@ class ChatDialog extends React.Component {
         this.getHighestId();
     }
 
+    
+    handleOnChange(e){
+        this.setState({content: e.target.value});
+        console.log(e.target.value);
+    }
+
+    handleClick(){
+        this.state.show = !this.state.show;
+        if(this.state.show){
+            this.setState({button: "Stäng"});
+        }else{
+            this.setState({button: "Chatta"});
+        }
+    }
+
+    handleComment(replyto){
+        this.addComment(replyto);
+        this.setState({active_id: null});
+    }
+
+    handleUpdateComment(id){
+        this.updateComment(id);
+        this.setState({updateId: null});
+    }
+
     async getHighestId(){
         await fetch("/comments/",{
             method : 'GET',
@@ -72,7 +97,7 @@ class ChatDialog extends React.Component {
             "id" : id,
             "location" : this.props.name,
             "replyto" : replyto,
-            "author" : "1",
+            "author" : 1,
             "content" : this.state.content,
             "posted" : time
         }
@@ -110,29 +135,6 @@ class ChatDialog extends React.Component {
         });
     }
 
-    handleOnChange(e){
-        this.setState({content: e.target.value});
-        console.log(e.target.value);
-    }
-
-    handleClick(){
-        this.state.show = !this.state.show;
-        if(this.state.show){
-            this.setState({button: "Stäng"});
-        }else{
-            this.setState({button: "Chatta"});
-        }
-    }
-
-    handleComment(replyto){
-        this.addComment(replyto);
-        this.setState({active_id: null});
-    }
-
-    handleUpdateComment(id){
-        this.updateComment(id);
-        this.setState({updateId: null});
-    }
 
     async createAnswer(){
         const id = Math.max.apply(null, this.state.highestId.map(highestId => highestId.id))+1;
@@ -141,7 +143,7 @@ class ChatDialog extends React.Component {
             "id" : id,
             "location" : this.props.name,
             "replyto" : null,
-            "author" : "1",
+            "author" : 1,
             "content" : this.state.content,
             "posted" : time
         }
