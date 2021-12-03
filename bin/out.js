@@ -45182,6 +45182,14 @@ var require_climatecodesRoute = __commonJS((exports2, module2) => {
     }
   });
   router.get("/", (req, res) => {
+    const dbConnect = db.getDb();
+    dbConnect.collection("climatecodes").find().toArray(function(err, result) {
+      if (err) {
+        console.log("Something went wrong with DB call", err);
+      } else {
+        res.status(200).send(result);
+      }
+    });
   });
   module2.exports = router;
 });
