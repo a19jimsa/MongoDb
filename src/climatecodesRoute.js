@@ -9,7 +9,7 @@ db.connectToServer(function (err) {
   }
 
   // Do stuff ... for example
-  // start the Express server  
+  // start the Express server
 });
 
 const dbConnect = db.getDb();
