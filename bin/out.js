@@ -45167,11 +45167,13 @@ var require_usersRoute = __commonJS((exports2, module2) => {
   });
   router.delete("/:name", function(req, res) {
     let sql = "delete from user where username = ?";
-    db.all(sql, [req.params.name], (err, rows) => {
-      if (err) {
+    const dbConnect = db.getDb();
+    var myobj = {["username"]: req.params.name};
+    dbConnect.collection("users").deleteOne(myobj, function(err, result) {
+      if (err)
         throw err;
-      }
-      res.status(200).send(rows);
+      console.log("1 document deleted");
+      res.status(201).send({msg: result});
     });
   });
   module2.exports = router;
@@ -45319,11 +45321,14 @@ var require_commentsRoute = __commonJS((exports2, module2) => {
   });
   router.delete("/:commentid", express2.json(), function(req, res) {
     let sql = "delete from comment where id=?";
-    db.all(sql, [req.params.commentid], (err, rows) => {
-      if (err) {
+    const dbConnect = db.getDb();
+    var id = parseInt(req.params.commentid);
+    var myobj = {["id"]: id};
+    dbConnect.collection("comments").deleteOne(myobj, function(err, result) {
+      if (err)
         throw err;
-      }
-      res.status(200).send(rows);
+      console.log("1 document deleted");
+      res.status(201).send({msg: result});
     });
   });
   module2.exports = router;

@@ -138,12 +138,14 @@ router.post("/:location/comment/:commentid", express.json(), function(req, res){
 //DELETE remove comment from specific city
 router.delete("/:commentid", express.json(), function(req, res){
     let sql = "delete from comment where id=?";
-    db.all(sql, [req.params.commentid], (err, rows)=>{
-        if(err){
-            throw err;
-        }
-        res.status(200).send(rows);
-    });
+    const dbConnect = db.getDb();
+    var id = parseInt(req.params.commentid);
+    var myobj = { ['id']: id};
+    dbConnect.collection("comments").deleteOne(myobj, function(err, result) {
+        if (err) throw err;
+        console.log("1 document deleted");
+        res.status(201).send({msg: result});
+    })
 })
 
 module.exports = router;

@@ -67,12 +67,13 @@ router.post("/", express.json(), function(req, res){
 //DELETE specific user of name
 router.delete("/:name", function(req, res){
     let sql = "delete from user where username = ?";
-    db.all(sql, [req.params.name], (err, rows)=>{
-        if(err){
-            throw err;
-        }
-        res.status(200).send(rows);
-    });
+    const dbConnect = db.getDb();
+    var myobj = { ['username']: req.params.name};
+    dbConnect.collection("users").deleteOne(myobj, function(err, result) {
+        if (err) throw err;
+        console.log("1 document deleted");
+        res.status(201).send({msg: result});
+    })
 })
 
 module.exports = router;

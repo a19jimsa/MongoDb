@@ -31,6 +31,7 @@ class ChatDialog extends React.Component {
         this.handleComment = this.handleComment.bind(this);
         this.createAnswer = this.createAnswer.bind(this);
         this.handleUpdateComment = this.handleUpdateComment.bind(this);
+        this.removeComment = this.removeComment.bind(this);
 
         this.state = {error: null,  isLoaded: false, comments: [], show: true, button: "Chatta", content: "", highestId: [], showAnswer: false, class: "none", active_id: null, updateId: null};
         this.getHighestId();
@@ -161,6 +162,7 @@ class ChatDialog extends React.Component {
     }
 
     async removeComment(id){
+        console.log(id);
         //HTML5 API Fetch
         await fetch("/comments/"+id, {
             method: 'DELETE',
@@ -296,7 +298,6 @@ class CreateUserDialog extends React.Component {
         this.usernameOnChange = this.usernameOnChange.bind(this);
         this.emailOnChange = this.emailOnChange.bind(this);
         this.deleteOnClick = this.deleteOnClick.bind(this);
-        this.getUsers();
     }
 
     async createUser(){
@@ -311,10 +312,12 @@ class CreateUserDialog extends React.Component {
             body: JSON.stringify(user)
         })
             .then((response) => response.json()).then(data => {
+            alert("Skapade användare: " + data.username);
+            this.componentDidMount();
         });
     }
 
-    async getUsers(){
+    async componentDidMount(){
         await fetch("/users/", {
             method: 'GET',
             headers: {'Content-Type': 'application/json'},
@@ -336,6 +339,7 @@ class CreateUserDialog extends React.Component {
         .then((response) => response.json())
         .then((data)=>{
             alert("Tog bort" + username);
+            this.componentDidMount();
         })
     }
     
