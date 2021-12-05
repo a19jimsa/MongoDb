@@ -362,7 +362,7 @@ class CreateUserDialog extends React.Component {
                     <h1>Användare</h1>
                     {this.state.users.map(tag=>
                     
-                    <div key={tag.id}><p>{tag.id} {tag.username} {tag.email}<button onClick={this.deleteOnClick.bind(this, tag.username)}>Ta bort</button></p></div>
+                    <div className="flex" key={tag.id}><p>{tag.id} {tag.username} {tag.email}<button onClick={this.deleteOnClick.bind(this, tag.username)}>Ta bort</button></p></div>
                     )}
                 </div>
             )

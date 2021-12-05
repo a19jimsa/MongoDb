@@ -167,9 +167,9 @@ class Forecast extends React.Component{
                         </div>
 
                         <div className={this.state.active_id == tag.fromtime.substring(0,10) ? this.state.class : "none"}>
-                        <table><thead><tr><th>Tid</th><th>Väder</th><th>Nederbörd</th><th>Vind m/s</th><th>Lufttryck</th></tr></thead><tbody>
+                        <table><thead><tr><th>Tid</th><th>Väder</th><th>Nederbörd mm</th><th>Vind m/s</th><th>Lufttryck hPa</th></tr></thead><tbody>
                         {tag.auxdata.map(tag2=>
-                        <tr key={tag2.name+tag2.fromtime+tag2.totime}><td>{tag2.fromtime.substring(11, 13)}</td><td>{tag2.auxdata.TVALUE}&#176;C</td><td>{tag2.auxdata.RVALUE}{tag2.auxdata.RUNIT}</td><td>{tag2.auxdata.MPS}m/s</td><td>{tag2.auxdata.VALUE}{tag2.auxdata.UNIT}</td>
+                        <tr key={tag2.name+tag2.fromtime+tag2.totime}><td>{tag2.fromtime.substring(11, 13)}</td><td>{tag2.auxdata.TVALUE}&#176;</td><td>{tag2.auxdata.RVALUE}</td><td>{tag2.auxdata.MPS}</td><td>{tag2.auxdata.VALUE}</td>
                         </tr>)}
                         </tbody>
                         </table>

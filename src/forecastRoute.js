@@ -1,19 +1,15 @@
-const { response } = require("express");
 const express = require("express");
 const router =  express.Router();
-var sqlite3 = require('sqlite3').verbose();
+const db = require('./mongo-connection.js');
 
-
-let db = new sqlite3.Database("./weather.db", (err)=>{
-    if(err){
-        console.log(err.message);
-    }else{
-        console.log("connected to db");
-    }
+db.connectToServer(function (err) {
+  if (err) {
+    console.error(err);
+    process.exit();
+  }
 })
 
 router.get("/", function(req, res){
-    res.status(200).json(forecasts);
     console.log("Hämtade ut väderprognoser!");
 })
 
@@ -27,28 +23,32 @@ router.get("/:city/:date", function(req, res, next){
     }
     var totime = new Date(req.params.date);
     totime.setDate(totime.getDate() + number);
-    totime = totime.toISOString().substring(0, 10);
-    let sql = 'SELECT * FROM forecast where fromtime>=? and totime<=? and name=?';
-    db.all(sql, [req.params.date, totime, req.params.city], (err, rows)=>{
-        if(err){
-            throw err;
-        }
-        if(rows.length > 0){
+    var days = totime.toISOString().substring(0, 10);
+    const dbConnect = db.getDb();
+    var query = {fromtime:{$gte:req.params.date},totime:{$lte: days}};
+    dbConnect.collection('forecasts')
+        .find(query)
+        .toArray(function (err, result) {
+        if (err) {
+            console.log("Something went wrong with DB call", err)
+        } else {
+            if(result.length > 0){
             let obj = [];
             let auxdata = [];
             var j = 0;
-            for(var i = 0; i < rows.length; i++){
-                auxdata.push({"name": rows[i].name, "fromtime": rows[i].fromtime, "totime": rows[i].totime, "auxdata":JSON.parse(rows[i].auxdata)});
+            for(var i = 0; i < result.length; i++){
+                auxdata.push({"name": result[i].name, "fromtime": result[i].fromtime, "totime": result[i].totime, "auxdata":JSON.parse(result[i].auxdata)});
                 if((i+1) % 4 == 0){
-                    var feed = {"name": rows[j].name, "fromtime": rows[j].fromtime, "totime": rows[j].totime, "auxdata":auxdata};
+                    var feed = {"name": result[j].name, "fromtime": result[j].fromtime, "totime": result[j].totime, "auxdata":auxdata};
                     obj.push(feed);
                     auxdata = [];
                     j+=4;
                 }
             }
             res.status(200).send(obj);
-        }else{
-            next();
+            }else{
+                next();
+            }
         }
     });
 })
@@ -57,7 +57,7 @@ router.get("/:city/:date", function(req, res, next){
 router.get("/:code/:date", function(req, res){
     let sql = "select info.name as name, climatecodes.code as code, info.country as country, info.about as about from climatecodes inner join info on info.climatecode=climatecodes.code where code=?";
     console.log(req.params.code);
-    db.all(sql, [req.params.code], (err, rows)=>{
+    dbo.all(sql, [req.params.code], (err, rows)=>{
         if(err){
             throw err;
         }
@@ -68,42 +68,61 @@ router.get("/:code/:date", function(req, res){
 //Get last forecast from specific city! Getting last 4 from forecast and adding to array with reverse order.
 router.get("/:name", function(req, res, next){
     let sql = "select * from forecast where name=? order by fromtime DESC limit 4";
-        db.all(sql, [req.params.name], (err, rows)=>{
-            if(err){
-                throw err;
+    const dbConnect = db.getDb();
+    var query = {['name']: req.params.name};
+    dbConnect.collection('forecasts')
+    .find(query)
+    .sort({fromtime: -1})
+    .limit(4)
+    .toArray(function(err, result){
+        if(err){
+            throw err;
+        }
+        if(result.length > 0){
+            let obj = [];
+            let auxdata = [];
+            
+            for(var i = result.length-1; i >= 0; i--){
+                auxdata.push({"name": result[i].name, "fromtime": result[i].fromtime, "totime": result[i].totime, "auxdata":JSON.parse(result[i].auxdata)});
             }
-            if(rows.length > 0){
-                let obj = [];
-                let auxdata = [];
-                
-                for(var i = rows.length-1; i >= 0; i--){
-                    auxdata.push({"name": rows[i].name, "fromtime": rows[i].fromtime, "totime": rows[i].totime, "auxdata":JSON.parse(rows[i].auxdata)});
-                }
-                for(var i = 0; i < 1; i++){
-                    var feed = {"name": rows[i].name, "fromtime": rows[i].fromtime, "totime": rows[i].totime, "auxdata":auxdata};
-                    obj.push(feed);
-                }
-                res.status(200).send(obj);
-            }else{
-                next();
+            for(var i = 0; i < 1; i++){
+                var feed = {"name": result[i].name, "fromtime": result[i].fromtime, "totime": result[i].totime, "auxdata":auxdata};
+                obj.push(feed);
             }
-        });
+            res.status(200).send(obj);
+        }else{
+            next();
+        }
+    });
 })
 
 //GET last forecast of specific date done. Returns the last forecast of a specific date.!
 router.get("/:date", function(req, res){
     console.log(req.params.date);
     let sql = 'SELECT * FROM forecast where fromtime like "%'+req.params.date+'%"';
-    db.all(sql, [], (err, rows)=>{
+    const dbConnect = db.getDb();
+    var query = {['name']: req.params.name};
+    dbConnect.collection('forecasts')
+    .find(query)
+    .sort(-1)
+    .toArray(function(err, result){
         if(err){
             throw err;
         }
-        let obj = [];
-        for(var i = rows.length-1; i >= 0; i--){
-            var feed = {"name": rows[i].name, "fromtime": rows[i].fromtime, "totime": rows[i].totime, "auxdata":JSON.parse(rows[i].auxdata)};
-            obj.push(feed);
+        if(result.length > 0){
+            let obj = [];
+            let auxdata = [];
+            for(var i = result.length-1; i >= 0; i--){
+                auxdata.push({"name": result[i].name, "fromtime": result[i].fromtime, "totime": result[i].totime, "auxdata":JSON.parse(result[i].auxdata)});
+            }
+            for(var i = 0; i < 1; i++){
+                var feed = {"name": result[i].name, "fromtime": result[i].fromtime, "totime": result[i].totime, "auxdata":auxdata};
+                obj.push(feed);
+            }
+            res.status(200).send(obj);
+        }else{
+            res.status(200).send([]);
         }
-        res.status(200).send(obj);
     });
     
 })

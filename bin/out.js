@@ -20500,67 +20500,6 @@ var require_express2 = __commonJS((exports2, module2) => {
   module2.exports = require_express();
 });
 
-// src/usersRoute.js
-var require_usersRoute = __commonJS((exports2, module2) => {
-  var sqlite3 = require("sqlite3").verbose();
-  var express2 = require_express2();
-  var router = express2.Router();
-  var db = new sqlite3.Database("./weather.db", (err) => {
-    if (err) {
-      console.log(err.message);
-    } else {
-      console.log("Connected to db");
-    }
-  });
-  router.get("/", function(req, res) {
-    let sql = "select * from user";
-    db.all(sql, [], (err, rows) => {
-      if (err) {
-        throw err;
-      }
-      res.status(200).send(rows);
-    });
-  });
-  router.get("/:name", function(req, res) {
-    let sql = "select * from user where name=?";
-    db.all(sql, [req.param.name], (err, rows) => {
-      if (err) {
-        throw err;
-      }
-      res.status(200).send(rows);
-    });
-  });
-  router.put("/:id", express2.json(), function(req, res) {
-    let sql = "update user set username = ?, email = ? where ?";
-    db.all(sql, [req.body.username, req.body.email, req.params.id], (err, rows) => {
-      if (err) {
-        throw err;
-      }
-      res.status(200).send(rows);
-    });
-  });
-  router.post("/", express2.json(), function(req, res) {
-    let sql = "insert into user(id, username, email) values(?,?,?)";
-    db.run(sql, [req.body.id, req.body.username, req.body.email], (err, rows) => {
-      if (err) {
-        throw err;
-      }
-      res.status(201).send({msg: "Created comment" + rows});
-      console.log("Skapade anv\xE4ndare");
-    });
-  });
-  router.delete("/:name", function(req, res) {
-    let sql = "delete from user where username = ?";
-    db.all(sql, [req.params.name], (err, rows) => {
-      if (err) {
-        throw err;
-      }
-      res.status(200).send(rows);
-    });
-  });
-  module2.exports = router;
-});
-
 // node_modules/mongodb/lib/error.js
 var require_error = __commonJS((exports2) => {
   "use strict";
@@ -45170,6 +45109,74 @@ var require_mongo_connection = __commonJS((exports2, module2) => {
   };
 });
 
+// src/usersRoute.js
+var require_usersRoute = __commonJS((exports2, module2) => {
+  var express2 = require_express2();
+  var router = express2.Router();
+  var db = require_mongo_connection();
+  db.connectToServer(function(err) {
+    if (err) {
+      console.error(err);
+      process.exit();
+    }
+  });
+  router.get("/", function(req, res) {
+    const dbConnect = db.getDb();
+    dbConnect.collection("users").find().toArray(function(err, result) {
+      if (err) {
+        console.log("Something went wrong with DB call", err);
+      } else {
+        res.status(200).send(result);
+      }
+    });
+  });
+  router.get("/:name", function(req, res) {
+    let sql = "select * from user where name=?";
+    const dbConnect = db.getDb();
+    dbConnect.collection("users").find({["username"]: req.params.name}, {projection: {username: 1}}).toArray(function(err, result) {
+      if (err) {
+        console.log("Something went wrong with DB call", err);
+      } else {
+        res.status(200).send(result);
+      }
+    });
+  });
+  router.put("/:id", express2.json(), function(req, res) {
+    let sql = "update user set username = ?, email = ? where ?";
+    const dbConnect = db.getDb();
+    var id = parseInt(req.params.id);
+    var myquery = {["id"]: id};
+    var newvalues = {$set: {["username"]: req.body.username, ["email"]: req.body.email}};
+    dbConnect.collection("users").updateOne(myquery, newvalues, function(err, result) {
+      if (err)
+        throw err;
+      console.log("1 document updated");
+      res.status(200).send({msg: result});
+    });
+  });
+  router.post("/", express2.json(), function(req, res) {
+    let sql = "insert into user(id, username, email) values(?,?,?)";
+    const dbConnect = db.getDb();
+    var myobj = {["id"]: req.body.id, ["username"]: req.body.username, ["email"]: req.body.email};
+    dbConnect.collection("users").insertOne(myobj, function(err, result) {
+      if (err)
+        throw err;
+      console.log("1 document inserted");
+      res.status(201).send({msg: "OK"});
+    });
+  });
+  router.delete("/:name", function(req, res) {
+    let sql = "delete from user where username = ?";
+    db.all(sql, [req.params.name], (err, rows) => {
+      if (err) {
+        throw err;
+      }
+      res.status(200).send(rows);
+    });
+  });
+  module2.exports = router;
+});
+
 // src/climatecodesRoute.js
 var require_climatecodesRoute = __commonJS((exports2, module2) => {
   var express2 = require_express2();
@@ -45196,7 +45203,6 @@ var require_climatecodesRoute = __commonJS((exports2, module2) => {
 
 // src/commentsRoute.js
 var require_commentsRoute = __commonJS((exports2, module2) => {
-  var {parse} = require_main();
   var express2 = require_express2();
   var router = express2.Router();
   var db = require_mongo_connection();
@@ -45325,19 +45331,16 @@ var require_commentsRoute = __commonJS((exports2, module2) => {
 
 // src/forecastRoute.js
 var require_forecastRoute = __commonJS((exports2, module2) => {
-  var {response} = require_express2();
   var express2 = require_express2();
   var router = express2.Router();
-  var sqlite3 = require("sqlite3").verbose();
-  var db = new sqlite3.Database("./weather.db", (err) => {
+  var db = require_mongo_connection();
+  db.connectToServer(function(err) {
     if (err) {
-      console.log(err.message);
-    } else {
-      console.log("connected to db");
+      console.error(err);
+      process.exit();
     }
   });
   router.get("/", function(req, res) {
-    res.status(200).json(forecasts);
     console.log("H\xE4mtade ut v\xE4derprognoser!");
   });
   router.get("/:city/:date", function(req, res, next) {
@@ -45349,35 +45352,37 @@ var require_forecastRoute = __commonJS((exports2, module2) => {
     }
     var totime = new Date(req.params.date);
     totime.setDate(totime.getDate() + number);
-    totime = totime.toISOString().substring(0, 10);
-    let sql = "SELECT * FROM forecast where fromtime>=? and totime<=? and name=?";
-    db.all(sql, [req.params.date, totime, req.params.city], (err, rows) => {
+    var days = totime.toISOString().substring(0, 10);
+    const dbConnect = db.getDb();
+    var query = {fromtime: {$gte: req.params.date}, totime: {$lte: days}};
+    dbConnect.collection("forecasts").find(query).toArray(function(err, result) {
       if (err) {
-        throw err;
-      }
-      if (rows.length > 0) {
-        let obj = [];
-        let auxdata = [];
-        var j = 0;
-        for (var i = 0; i < rows.length; i++) {
-          auxdata.push({name: rows[i].name, fromtime: rows[i].fromtime, totime: rows[i].totime, auxdata: JSON.parse(rows[i].auxdata)});
-          if ((i + 1) % 4 == 0) {
-            var feed = {name: rows[j].name, fromtime: rows[j].fromtime, totime: rows[j].totime, auxdata};
-            obj.push(feed);
-            auxdata = [];
-            j += 4;
-          }
-        }
-        res.status(200).send(obj);
+        console.log("Something went wrong with DB call", err);
       } else {
-        next();
+        if (result.length > 0) {
+          let obj = [];
+          let auxdata = [];
+          var j = 0;
+          for (var i = 0; i < result.length; i++) {
+            auxdata.push({name: result[i].name, fromtime: result[i].fromtime, totime: result[i].totime, auxdata: JSON.parse(result[i].auxdata)});
+            if ((i + 1) % 4 == 0) {
+              var feed = {name: result[j].name, fromtime: result[j].fromtime, totime: result[j].totime, auxdata};
+              obj.push(feed);
+              auxdata = [];
+              j += 4;
+            }
+          }
+          res.status(200).send(obj);
+        } else {
+          next();
+        }
       }
     });
   });
   router.get("/:code/:date", function(req, res) {
     let sql = "select info.name as name, climatecodes.code as code, info.country as country, info.about as about from climatecodes inner join info on info.climatecode=climatecodes.code where code=?";
     console.log(req.params.code);
-    db.all(sql, [req.params.code], (err, rows) => {
+    dbo.all(sql, [req.params.code], (err, rows) => {
       if (err) {
         throw err;
       }
@@ -45386,18 +45391,20 @@ var require_forecastRoute = __commonJS((exports2, module2) => {
   });
   router.get("/:name", function(req, res, next) {
     let sql = "select * from forecast where name=? order by fromtime DESC limit 4";
-    db.all(sql, [req.params.name], (err, rows) => {
+    const dbConnect = db.getDb();
+    var query = {["name"]: req.params.name};
+    dbConnect.collection("forecasts").find(query).sort({fromtime: -1}).limit(4).toArray(function(err, result) {
       if (err) {
         throw err;
       }
-      if (rows.length > 0) {
+      if (result.length > 0) {
         let obj = [];
         let auxdata = [];
-        for (var i = rows.length - 1; i >= 0; i--) {
-          auxdata.push({name: rows[i].name, fromtime: rows[i].fromtime, totime: rows[i].totime, auxdata: JSON.parse(rows[i].auxdata)});
+        for (var i = result.length - 1; i >= 0; i--) {
+          auxdata.push({name: result[i].name, fromtime: result[i].fromtime, totime: result[i].totime, auxdata: JSON.parse(result[i].auxdata)});
         }
         for (var i = 0; i < 1; i++) {
-          var feed = {name: rows[i].name, fromtime: rows[i].fromtime, totime: rows[i].totime, auxdata};
+          var feed = {name: result[i].name, fromtime: result[i].fromtime, totime: result[i].totime, auxdata};
           obj.push(feed);
         }
         res.status(200).send(obj);
@@ -45409,16 +45416,26 @@ var require_forecastRoute = __commonJS((exports2, module2) => {
   router.get("/:date", function(req, res) {
     console.log(req.params.date);
     let sql = 'SELECT * FROM forecast where fromtime like "%' + req.params.date + '%"';
-    db.all(sql, [], (err, rows) => {
+    const dbConnect = db.getDb();
+    var query = {["name"]: req.params.name};
+    dbConnect.collection("forecasts").find(query).sort(-1).toArray(function(err, result) {
       if (err) {
         throw err;
       }
-      let obj = [];
-      for (var i = rows.length - 1; i >= 0; i--) {
-        var feed = {name: rows[i].name, fromtime: rows[i].fromtime, totime: rows[i].totime, auxdata: JSON.parse(rows[i].auxdata)};
-        obj.push(feed);
+      if (result.length > 0) {
+        let obj = [];
+        let auxdata = [];
+        for (var i = result.length - 1; i >= 0; i--) {
+          auxdata.push({name: result[i].name, fromtime: result[i].fromtime, totime: result[i].totime, auxdata: JSON.parse(result[i].auxdata)});
+        }
+        for (var i = 0; i < 1; i++) {
+          var feed = {name: result[i].name, fromtime: result[i].fromtime, totime: result[i].totime, auxdata};
+          obj.push(feed);
+        }
+        res.status(200).send(obj);
+      } else {
+        res.status(200).send([]);
       }
-      res.status(200).send(obj);
     });
   });
   module2.exports = router;

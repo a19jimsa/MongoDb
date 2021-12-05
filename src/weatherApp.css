@@ -3,12 +3,12 @@
   margin: 0;
   padding: 0;
   transition: all 1s ease;
+  font-family: Verdana, Tahoma, sans-serif;
 }
 
 body {
   background: rgb(245, 245, 245);
 }
-
 .search {
   background: white;
   position: relative;
@@ -80,6 +80,7 @@ h1{
 
 h2{
   font-size: 18px;
+  padding: 20px;
 }
 
 #info{
@@ -287,4 +288,19 @@ ul > li{
 
 table{
   width: 100%;
+  border-collapse: collapse;
+}
+
+th{
+  background-color: #f5f6f7;
+  color: rgba(0, 0, 0, 0.719);
+  padding: 10px;
+}
+
+tr{
+  border-bottom: 0.0625rem solid #d0d6db;
+}
+
+td{
+  padding: 10px;
 }

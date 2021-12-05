@@ -1,4 +1,3 @@
-const { parse } = require("dotenv");
 const express = require("express");
 const router =  express.Router();
 const db = require('./mongo-connection.js');
@@ -9,8 +8,6 @@ db.connectToServer(function (err) {
     process.exit();
   }
 });
-
-
 
 //GET all comments
 router.get("/", (req, res)=>{
