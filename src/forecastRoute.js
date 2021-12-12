@@ -55,7 +55,7 @@ router.get("/:city/:date", function(req, res, next){
 
 //GET Name and code from climatecodes and forecast and info with climatecode and date. VG
 router.get("/:code/:date", function(req, res){
-    let sql = "select info.name as name, climatecodes.code as code, info.country as country, info.about as about from climatecodes inner join info on info.climatecode=climatecodes.code where code=?";
+    let sql = "select info.name as name, climatecodes.code as code, info.country as country, info.about as about from climatecodes inner join info on info.climatecode=climatecodes.code";
     console.log(req.params.code);
     dbo.all(sql, [req.params.code], (err, rows)=>{
         if(err){
@@ -101,7 +101,7 @@ router.get("/:date", function(req, res){
     console.log(req.params.date);
     let sql = 'SELECT * FROM forecast where fromtime like "%'+req.params.date+'%"';
     const dbConnect = db.getDb();
-    var query = {['name']: req.params.name};
+    var query = {['name']: req.params.date};
     dbConnect.collection('forecasts')
     .find(query)
     .sort(-1)
