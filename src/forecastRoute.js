@@ -33,35 +33,11 @@ router.get("/:city/:date", function(req, res, next){
             console.log("Something went wrong with DB call", err)
         } else {
             if(result.length > 0){
-            let obj = [];
-            let auxdata = [];
-            var j = 0;
-            for(var i = 0; i < result.length; i++){
-                auxdata.push({"name": result[i].name, "fromtime": result[i].fromtime, "totime": result[i].totime, "auxdata":JSON.parse(result[i].auxdata)});
-                if((i+1) % 4 == 0){
-                    var feed = {"name": result[j].name, "fromtime": result[j].fromtime, "totime": result[j].totime, "auxdata":auxdata};
-                    obj.push(feed);
-                    auxdata = [];
-                    j+=4;
-                }
-            }
-            res.status(200).send(obj);
+                res.status(200).send(result);
             }else{
-                next();
+                res.status(404).json({msg: "Didnt find any"});
             }
         }
-    });
-})
-
-//GET Name and code from climatecodes and forecast and info with climatecode and date. VG
-router.get("/:code/:date", function(req, res){
-    let sql = "select info.name as name, climatecodes.code as code, info.country as country, info.about as about from climatecodes inner join info on info.climatecode=climatecodes.code";
-    console.log(req.params.code);
-    dbo.all(sql, [req.params.code], (err, rows)=>{
-        if(err){
-            throw err;
-        }
-        res.status(200).send(rows);
     });
 })
 
@@ -73,23 +49,13 @@ router.get("/:name", function(req, res, next){
     dbConnect.collection('forecasts')
     .find(query)
     .sort({fromtime: -1})
-    .limit(4)
+    .limit(1)
     .toArray(function(err, result){
         if(err){
             throw err;
         }
         if(result.length > 0){
-            let obj = [];
-            let auxdata = [];
-            
-            for(var i = result.length-1; i >= 0; i--){
-                auxdata.push({"name": result[i].name, "fromtime": result[i].fromtime, "totime": result[i].totime, "auxdata":JSON.parse(result[i].auxdata)});
-            }
-            for(var i = 0; i < 1; i++){
-                var feed = {"name": result[i].name, "fromtime": result[i].fromtime, "totime": result[i].totime, "auxdata":auxdata};
-                obj.push(feed);
-            }
-            res.status(200).send(obj);
+            res.status(200).send(result);
         }else{
             next();
         }
@@ -98,10 +64,8 @@ router.get("/:name", function(req, res, next){
 
 //GET last forecast of specific date done. Returns the last forecast of a specific date.!
 router.get("/:date", function(req, res){
-    console.log(req.params.date);
-    let sql = 'SELECT * FROM forecast where fromtime like "%'+req.params.date+'%"';
     const dbConnect = db.getDb();
-    var query = {['name']: req.params.date};
+    var query = {['date']: req.params.date};
     dbConnect.collection('forecasts')
     .find(query)
     .sort(-1)
@@ -110,21 +74,11 @@ router.get("/:date", function(req, res){
             throw err;
         }
         if(result.length > 0){
-            let obj = [];
-            let auxdata = [];
-            for(var i = result.length-1; i >= 0; i--){
-                auxdata.push({"name": result[i].name, "fromtime": result[i].fromtime, "totime": result[i].totime, "auxdata":JSON.parse(result[i].auxdata)});
-            }
-            for(var i = 0; i < 1; i++){
-                var feed = {"name": result[i].name, "fromtime": result[i].fromtime, "totime": result[i].totime, "auxdata":auxdata};
-                obj.push(feed);
-            }
-            res.status(200).send(obj);
+            res.status(200).send(result);
         }else{
             res.status(200).send([]);
         }
     });
-    
 })
 
 module.exports = router;

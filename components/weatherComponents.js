@@ -60,7 +60,7 @@ class Info extends React.Component {
                 <label>Klimatkod</label>
                 <input type="text" onChange={this.handleOnChangeCode} />
                 <label>Datum</label>
-                <input type="date" onChange={this.handleOnChangeDate} min="2020-01-01" max="2020-12-31"/>
+                <input type="date" onChange={this.handleOnChangeDate} min="2020-01-01" max="2020-04-09"/>
                 <button onClick={this.updateClimateCode}>Hämta orter</button>
                 <table><thead><tr><th>Namn</th><th>Klimatkod</th><th>Land</th><th>Om</th></tr></thead><tbody>{this.state.forecast.map(tag => <tr key={tag.name}><td>{tag.name}</td><td>{tag.code}</td><td>{tag.country}</td><td>{tag.about}</td></tr>)}</tbody></table>
             </div>
@@ -90,7 +90,8 @@ class Forecast extends React.Component{
             this.changeForecast();
         },
         (error)=>{
-            this.state({isLoaded: true, error});
+            this.setState({isLoaded: false});
+            console.log(error);
         })
     }
 
@@ -103,7 +104,8 @@ class Forecast extends React.Component{
             this.setState({isLoaded: true, forecast: result});
         },
         (error)=>{
-            this.state({isLoaded: true, error});
+            this.setState({isLoaded: false});
+            console.log(error);
         })
     }
 
@@ -128,7 +130,7 @@ class Forecast extends React.Component{
             <button onClick={this.handleClick.bind(this, 3)}>3 dagarsprognos</button>
             <button onClick={this.handleClick.bind(this, 7)}>7 dagarsprognos</button>
             <div>
-                <input type="date" min="2020-01-01" max="2020-12-31" onChange={this.onChangeDate} />
+                <input type="date" min="2020-01-01" max="2020-04-09" value="2020-04-08" onChange={this.onChangeDate} />
                 <button onClick={this.handleOnClickDate}>Ändra datum</button>
             </div>
         </aside>)
